@@ -125,12 +125,13 @@ featureCounts -p -T 8 -t exon -g gene_id -a annotation.gtf -o counts.txt *.sorte
 Rscript DE_GO/Q1.R
 ```
 
-#### Convert pdf to png for git
-
-```bash
-convert -density 300 go_barplot.pdf -quality 300 go_barplot.png
-convert -density 300 go_dotplot.pdf -quality 300 go_dotplot.png
-```
+### R code Analysis Overview  
+1. Load raw counts (`count_data.csv`) and sample metadata (`col_data.csv`).  
+2. Build a `DESeqDataSet` with `design = ~ group` (levels: group1, group2).  
+3. Run DESeq2 to estimate size factors, dispersions, and test for differential expression.  
+4. Apply filtering:  
+   - Adjusted p‑value < 0.05  
+   - |log₂ fold change| > 1  
 
 ### Results
 
