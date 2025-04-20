@@ -272,19 +272,65 @@ featureCounts -T 8 \
 Rscript TA/Q2.R
 ```
 
-### Results
+### 1. R code Analysis Overview
 
-### Figure 3: Pseudotime Distribution
-![Pseudotime Distribution](02_trajectory_analysis/Output_Plots/pseudotime_histogram.png)
-*Histogram of Slingshot pseudotime values for all cells. The x‑axis shows pseudotime (0 = earliest, ~140 = latest), and the y‑axis shows cell counts per bin, illustrating that cells are evenly distributed along the inferred trajectory.*
+Start from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and perform:
 
-### Figure 4: Slingshot Trajectory on PCA
-![Slingshot Trajectory on PCA](02_trajectory_analysis/Output_Plots/trajectory_pca.png)
-*Scatterplot of PC1 vs. PC2 for each cell, colored by cluster assignment (Set3 palette), with the Slingshot‐inferred developmental trajectory overlaid as a black curve. The curve traces the progression from progenitor to mature cell states in principal‐component space.*
+1. **Normalization**  
+   Create a `SingleCellExperiment` with raw counts, then compute log‑normalized counts via `scater::logNormCounts()`.
+2. **Dimensionality reduction**  
+   - **PCA** (`runPCA`, 50 components)  
+   - **UMAP** on PCA space (`runUMAP`)
+3. **Clustering**  
+   Compute clusters in PCA space with `scran::clusterCells()`.
+4. **Trajectory inference**  
+   Run `slingshot()` on PCA to infer developmental lineages.
+5. **Pseudotime extraction**  
+   Pull pseudotime along the first lineage and save to `pseudotime_values_slingshot.csv`.
+6. **Plotting** (all saved as PNG via `ragg`):  
+   - Pseudotime histogram  
+   - PCA + trajectory  
+   - UMAP colored by pseudotime  
 
-### Figure 5: UMAP Colored by Pseudotime
-![UMAP Colored by Pseudotime](02_trajectory_analysis/Output_Plots/trajectory_umap_pseudotime.png)
-*UMAP embedding of all cells, colored on a continuous blue–yellow scale by their Slingshot pseudotime values. Early pseudotime cells (blue) transition smoothly through intermediate (green) to late pseudotime cells (yellow), confirming the continuity of the developmental trajectory.*
+---
+
+### 2. Key Metrics
+
+- **Cells analyzed:** 191  
+- **Clusters inferred:** 3  
+- **Pseudotime range:** 0 (earliest) → ~145 (latest)  
+
+---
+
+### 3. QC & Diagnostic Plots
+
+#### 3.1 Pseudotime Distribution  
+![Pseudotime histogram](02_trajectory_analysis/Output_Plots/pseudotime_histogram.png)  
+> **Caption:** Histogram of Slingshot pseudotime values for all cells. The x‑axis shows pseudotime (0 = earliest, ~140 = latest), and the y‑axis shows cell counts per bin, illustrating that cells are evenly distributed along the inferred trajectory.
+
+#### 3.2 Slingshot Trajectory on PCA  
+![Trajectory on PCA](02_trajectory_analysis/Output_Plots/trajectory_pca.png)  
+> **Caption:** Scatterplot of PC1 vs PC2, colored by cluster assignment (Set3 palette), with the Slingshot‑inferred developmental trajectory overlaid as a black curve tracing progression from progenitor to mature states.
+
+#### 3.3 UMAP Colored by Pseudotime  
+![UMAP by pseudotime](02_trajectory_analysis/Output_Plots/trajectory_umap_pseudotime.png)  
+> **Caption:** UMAP embedding of all cells, colored on a continuous blue–yellow scale by their Slingshot pseudotime values. Early cells (blue) transition smoothly through intermediate (green) to late pseudotime (yellow), confirming continuity of the trajectory.
+
+---
+
+### 4. Interpretation & Next Steps
+
+- **Even pseudotime spread** across ~0–145 units suggests robust lineage coverage.  
+- **Three clusters** correspond to distinct transcriptional states along this trajectory.  
+- **PCA vs UMAP** both separate early vs late cells, validating the inferred path.  
+
+**Conclsion:**  
+- Overlay known marker genes to annotate branch points.  
+- Test alternative lineage models (e.g., multiple lineages with `slingshot`).  
+- Perform differential expression along pseudotime to identify dynamically regulated genes.
+
+> **Full code:** See `02_trajectory_analysis/Trajectory_analysis_code.R` for the complete Slingshot workflow including package setup, data loading, normalization, DR, clustering, trajectory inference, pseudotime extraction, and plotting.  
+
 
 ## Q3 Spatial Transcriptomics & Cell-Cell Communication
 
