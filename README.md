@@ -1,9 +1,27 @@
-# RNA Seq Analysis for Dr.Wang's Lab
+# Test Run: RNA‑seq, Single‑Cell Trajectory & Cell Cell Communication Analysis for Dr. Wang’s Lab  
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-## Required tools and applications
+_A modular, HPC‑compatible suite of workflows demonstrating bulk RNA‑seq, single‑cell Slingshot trajectory inference, and Visium‑based spatial transcriptomics with CellPhoneDB._
 
-#### Install sratoolkit
+---
+
+## 1. Introduction
+
+This repository implements end‑to‑end bioinformatics pipelines on an HPC environment to showcase expertise in:
+
+1. **Bulk RNA‑seq**: alignment → quantification → differential expression → GO enrichment  
+2. **Trajectory analysis**: normalization → PCA/UMAP → clustering → Slingshot trajectory → pseudotime  
+3. **Cell Cell Communication**: Visium data import → clustering → cell‑type annotation → CellPhoneDB ligand–receptor analysis  
+
+**Tools & Languages**  
+- **CLI**: SRA Toolkit, HISAT2, SAMtools, Subread/featureCounts, FastQC, MultiQC  
+- **R**: DESeq2, edgeR, clusterProfiler, scater, scran, slingshot, ggplot2, pheatmap  
+- **Python**: Scanpy, CellPhoneDB, ktplotspy, matplotlib, pandas, numpy  
+
+---
+## 2. Required tools and applications
+
+#### 2.1 Install sratoolkit
 
 ```bash
 wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/3.2.1/sratoolkit.3.2.1-ubuntu64.tar.gz
@@ -12,7 +30,7 @@ cd sratoolkit.*
 export PATH=$PATH:$(pwd)/bin
 ```
 
-#### Install hisat2
+#### 2.2. Install hisat2
 
 ```bash
 wget https://cloud.biohpc.swmed.edu/index.php/s/oTtGWbWjaxsQ2Ho/download
@@ -22,7 +40,7 @@ export PATH=$PATH:$(pwd)
 hisat2 --version
 ```
 
-#### Install Subread
+#### 2.3. Install Subread
 
 ```bash
 wget https://sourceforge.net/projects/subread/files/subread-2.1.0/subread-2.1.0-Linux-x86_64.tar.gz
@@ -31,11 +49,11 @@ cd subread-2.1.0-Linux-x86_64
 export PATH=$PATH:$(pwd)/bin
 ```
 
-## Q1 Deferential Expression & Gene Ontology
+## 3. Q1 Deferential Expression & Gene Ontology
 
 A modular and reproducible pipeline for RNA-seq data analysis, designed to be deployed on high-performance computing (HPC) environments with customizable R installations.
 
-### Overview
+### 3.1. Overview
 
 The pipeline supports:
 - Alignment of RNA-seq reads to a reference genome
@@ -43,22 +61,22 @@ The pipeline supports:
 - Differential gene expression analysis using the edgeR package
 - Functional enrichment analysis using Gene Ontology (GO) with clusterProfiler
 
-### Step-by-step instructions to fetch data and perform Differential Expression & Gene Ontology
+### 3.2. Step-by-step instructions to fetch data and perform Differential Expression & Gene Ontology
 
-#### Source the environment setup script
+#### 3.2.1. Source the environment setup script
 
 ```bash
 source ./Tools/load_paths_and_test_tools.sh
 ```
 
-#### Prep R
+#### 3.2.2. Prep R
 
 ```bash
 set_r_version 4.3.2
 export LD_LIBRARY_PATH=/gpfs/fs7/aafc/phenocart/PhenomicsProjects/UFPSGPSCProject/4_Assets/R/icu/lib:$LD_LIBRARY_PATH
 Rscript --version
 ```
-#### Fetch data
+#### 3.2.3. Fetch data
 https://www.ncbi.nlm.nih.gov/bioproject/?term=PRJNA716327
 
 ```bash
@@ -67,7 +85,7 @@ prefetch SRR14055935 --output-directory .
 prefetch SRR14055934 --output-directory .
 prefetch SRR14055936 --output-directory .
 ```
-#### Convert SRA to FASTQ
+#### 3.2.4. Convert SRA to FASTQ
 
 ```bash
 fasterq-dump SAMN18442667
@@ -76,7 +94,7 @@ fasterq-dump SAMN18442666
 fasterq-dump SAMN18442664
 ```
 
-#### Steps to Build HISAT2 Index for mm39 (GRCm39)
+#### 3.2.5. Steps to Build HISAT2 Index for mm39 (GRCm39)
 
 ```bash
 wget ftp://ftp.ensembl.org/pub/release-111/fasta/mus_musculus/dna/Mus_musculus.GRCm39.dna.primary_assembly.fa.gz
@@ -85,7 +103,7 @@ mkdir -p mm39_index
 hisat2-build Mus_musculus.GRCm39.dna.primary_assembly.fa mm39_index/mm39
 ```
 
-#### Align them to the reference genome
+#### 3.2.6. Align them to the reference genome
 
 ```bash
 hisat2 -x mm39_index/mm39 -1 SAMN18442667_1.fastq -2 SAMN18442667_2.fastq -S SAMN18442667.sam
@@ -93,8 +111,9 @@ hisat2 -x mm39_index/mm39 -1 SAMN18442665_1.fastq -2 SAMN18442665_2.fastq -S SAM
 hisat2 -x mm39_index/mm39 -1 SAMN18442666_1.fastq -2 SAMN18442666_2.fastq -S SAMN18442666.sam
 hisat2 -x mm39_index/mm39 -1 SAMN18442664_1.fastq -2 SAMN18442664_2.fastq -S SAMN18442664.sam
 ```
+- **Alignment rate:** > 95% → no trimming performed  
 
-#### Convert SAM to BAM
+#### 3.2.7. Convert SAM to BAM
 
 ```bash
 samtools view -bS SAMN18442667.sam | samtools sort -o SAMN18442667.sorted.bam
@@ -107,25 +126,25 @@ samtools view -bS SAMN18442664.sam | samtools sort -o SAMN18442664.sorted.bam
 samtools index SAMN18442664.sorted.bam
 ```
 
-#### Download genome build
+#### 3.2.8. Download genome build
 
 ```bash
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M33/gencode.vM33.annotation.gtf.gz
 gunzip gencode.vM33.annotation.gtf.gz
 ```
 
-#### Generate count matrix
+#### 3.2.9. Generate count matrix
 
 ```bash
 featureCounts -p -T 8 -t exon -g gene_id -a annotation.gtf -o counts.txt *.sorted.bam
 ```
-#### Run the Script
+#### 3.2.10. Run the Script
 
 ```bash
 Rscript DE_GO/Q1.R
 ```
 
-### 1. R code Analysis Overview  
+### 3.3. R code Analysis Overview  
 1. Load raw counts (`count_data.csv`) and sample metadata (`col_data.csv`).  
 2. Build a `DESeqDataSet` with `design = ~ group` (levels: group1, group2).  
 3. Run DESeq2 to estimate size factors, dispersions, and test for differential expression.  
@@ -135,48 +154,48 @@ Rscript DE_GO/Q1.R
 
 ---
 
-### 2. Key Results  
+### 3.4. Key Results  
 - **Total genes tested:** 56,885  
 - **DEGs (padj < 0.05 & |log₂FC| > 1):** 0  _→_ no genes passed the thresholds.  
 - **GO BP enrichment:** skipped (no DEGs to analyze)  
 
 ---
 
-### 3. QC & Diagnostic Plots  
+### 3.5. QC & Diagnostic Plots  
 
-#### 3.1 PCA Plot  
+#### 3.5.1. PCA Plot  
 ![PCA plot](01_Bulk_RNASeq/PCA_plot.png)  
 > Principal component analysis of variance‑stabilized counts.  
 > PC1 (96% variance) separates group1 vs group2; PC2 accounts for ~3%.
 
-#### 3.2 Sample‑to‑Sample Distance Heatmap  
+#### 3.5.2. Sample‑to‑Sample Distance Heatmap  
 ![Distance heatmap](01_Bulk_RNASeq/sample_distance_heatmap.png)  
 > Euclidean distances between samples (VST counts), clustered by similarity. group1 and group2 each form tight clusters.
 
-#### 3.3 Volcano Plot  
+#### 3.5.3. Volcano Plot  
 ![Volcano plot](01_Bulk_RNASeq/volcano_plot.png)  
 > Log₂ fold change vs –log₁₀ adjusted p‑value. No points exceed the significance/FDR and fold‑change thresholds.
 
 ---
 
-### 4. Conclusions  
+### 3.6. Conclusions  
 - At **padj < 0.05** and **|log₂FC| > 1**, **no genes** are differentially expressed between group1 and group2 under these conditions.  
 - Accordingly, **GO Biological Process enrichment** was not performed.  
 
 > **Note:** The complete R script driving this analysis (data import, DESeq2 workflow, filtering, plotting, and GO enrichment steps) is included in  
 > `01_Bulk_RNASeq/Bulk_RNA-Seq(r_code).R`.  
 
-## Q2 Trajectory Analysis
+## 4. Q2 Trajectory Analysis
 
-### Step-by-step instructions to fetch data and perform Trajectory Analysis
+### 4.1. Step-by-step instructions to fetch data and perform Trajectory Analysis
 
-#### Source the environment setup script
+#### 4.1.1. Source the environment setup script
 
 ```bash
 source ./Tools/load_paths_and_test_tools.sh
 ```
 
-#### Prep R
+#### 4.1.2. Prep R
 
 ```bash
 set_r_version 4.3.2
@@ -184,7 +203,7 @@ export LD_LIBRARY_PATH=/gpfs/fs7/aafc/phenocart/PhenomicsProjects/UFPSGPSCProjec
 Rscript --version
 ```
 
-#### Fetch raw SRA data
+#### 4.1.3. Fetch raw SRA data
 
 ```bash
 mkdir -p data/raw_sra
@@ -196,7 +215,7 @@ while read SRR; do
 done < ../../data/raw_sra/sra_list.txt
 ```
 
-#### Extract fastq
+#### 4.1.4. Extract fastq
 
 ```bash
 mkdir -p data/raw_sra
@@ -208,7 +227,7 @@ while read SRR; do
 done < ../../data/raw_sra/sra_list.txt
 ```
 
-#### Quality control
+#### 4.1.5. Quality control
 
 ```bash
 mkdir -p data/qc/fastqc
@@ -218,7 +237,7 @@ dcd data/qc/fastqc
 multiqc . -o ../multiqc
 ```
 
-#### Build reference & Index
+#### 4.1.6. Build reference & Index
 
 ```bash
 mkdir -p data/reference
@@ -237,7 +256,7 @@ hisat2-build \
   ../hisat2_index/mouse_index
 ```
 
-#### Align reads
+#### 4.1.7. Align reads
 
 ```bash
 mkdir -p data/reference
@@ -255,8 +274,9 @@ hisat2-build \
   Mus_musculus.GRCm39.dna.primary_assembly.fa \
   ../hisat2_index/mouse_index
 ```
+- **Alignment rate:** > 85% → no trimming performed
 
-#### Generate count matrix
+#### 4.1.8. Generate count matrix
 
 ```bash
 mkdir -p data/counts
@@ -266,13 +286,13 @@ featureCounts -T 8 \
   data/alignments/*_sorted.bam
 ```
 
-#### Run the Script
+#### 4.1.9. Run the Script
 
 ```bash
 Rscript TA/Q2.R
 ```
 
-### 1. R code Analysis Overview
+### 4.2. R code Analysis Overview
 
 Start from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and perform:
 
@@ -294,7 +314,7 @@ Start from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and perf
 
 ---
 
-### 2. Key Metrics
+### 4.3. Key Metrics
 
 - **Cells analyzed:** 191  
 - **Clusters inferred:** 3  
@@ -302,41 +322,39 @@ Start from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and perf
 
 ---
 
-### 3. QC & Diagnostic Plots
+### 4.4. QC & Diagnostic Plots
 
-#### 3.1 Pseudotime Distribution  
+#### 4.4.1. Pseudotime Distribution  
 ![Pseudotime histogram](02_trajectory_analysis/Output_Plots/pseudotime_histogram.png)  
 > **Caption:** Histogram of Slingshot pseudotime values for all cells. The x‑axis shows pseudotime (0 = earliest, ~140 = latest), and the y‑axis shows cell counts per bin, illustrating that cells are evenly distributed along the inferred trajectory.
 
-#### 3.2 Slingshot Trajectory on PCA  
+#### 4.4.2. Slingshot Trajectory on PCA  
 ![Trajectory on PCA](02_trajectory_analysis/Output_Plots/trajectory_pca.png)  
 > **Caption:** Scatterplot of PC1 vs PC2, colored by cluster assignment (Set3 palette), with the Slingshot‑inferred developmental trajectory overlaid as a black curve tracing progression from progenitor to mature states.
 
-#### 3.3 UMAP Colored by Pseudotime  
+#### 4.4.3. UMAP Colored by Pseudotime  
 ![UMAP by pseudotime](02_trajectory_analysis/Output_Plots/trajectory_umap_pseudotime.png)  
 > **Caption:** UMAP embedding of all cells, colored on a continuous blue–yellow scale by their Slingshot pseudotime values. Early cells (blue) transition smoothly through intermediate (green) to late pseudotime (yellow), confirming continuity of the trajectory.
 
 ---
 
-### 4. Interpretation & Next Steps
+### 4.5. Conclusion
 
 - **Even pseudotime spread** across ~0–145 units suggests robust lineage coverage.  
 - **Three clusters** correspond to distinct transcriptional states along this trajectory.  
 - **PCA vs UMAP** both separate early vs late cells, validating the inferred path.  
 
-**Conclsion:**  
-- Overlay known marker genes to annotate branch points.  
-- Test alternative lineage models (e.g., multiple lineages with `slingshot`).  
+**Future direction:**    
 - Perform differential expression along pseudotime to identify dynamically regulated genes.
 
 > **Full code:** See `02_trajectory_analysis/Trajectory_analysis_code.R` for the complete Slingshot workflow including package setup, data loading, normalization, DR, clustering, trajectory inference, pseudotime extraction, and plotting.  
 
 
-## Q3 Spatial Transcriptomics & Cell-Cell Communication
+## 5. Q3 Spatial Transcriptomics & Cell-Cell Communication
 
 A streamlined and modular pipeline for analyzing spatial transcriptomics (ST) data with cluster-based cell type annotation and downstream ligand–receptor interaction analysis, suitable for deployment on HPC environments and reproducible research workflows.
 
-### Overview
+### 5.1. Overview
 
 The pipeline supports:
 
@@ -348,9 +366,9 @@ The pipeline supports:
 - Inference of cell-cell communication using CellPhoneDB with statistical permutation analysis
 - Heatmap visualization of significant ligand–receptor interactions with ktplotspy
 
-### Required tools and applications
+### 5.2. Required tools and applications
 
-#### Python package dependencies
+#### 5.2.1. Python package dependencies
 
 ```bash
 pip install scanpy pandas matplotlib numpy pillow cellphonedb
@@ -364,16 +382,16 @@ cd ktplotspy
 pip install --force-reinstall .
 ```
 
-### Step-by-step instructions
+### 5.3. Step-by-step instructions
 
-#### Fetch data
+#### 5.3.1. Fetch data
 
 ```bash
 wget https://ftp.ncbi.nlm.nih.gov/geo/series/GSE283nnn/GSE283269/suppl/GSE283269_RAW.tar
 tar -xvf GSE283269_RAW.tar
 ```
 
-#### Extract and preprocess data
+#### 5.3.2. Extract and preprocess data
 
 ```bash
 mkdir -p sample1a1/spatial
@@ -386,25 +404,92 @@ gunzip sample1a1/spatial/*.gz
 tail -n +2 sample1a1/spatial/tissue_positions_list.csv > tmp.csv && mv tmp.csv sample1a1/spatial/tissue_positions_list.csv #have to get rid of headers
 ```
 
-#### Activate Python environment
+#### 5.3.3. Activate Python environment
 
 ```bash
 source venv/bin/activate
 ```
 
-#### Run the Script
+#### 5.3.4. Run the Script
 
 ```bash
 python ST_CCC/Process.py
 python ST_CCC/Q3.py
 ```
+### 5.4. Python Code Analysis Overview
+**Data Source**  
+- **GEO series:** GSE283269 (10x Visium H&E‐stained sections)  
+- **Selected sample:** GSM8658911 (`sample1a1`) as a representative Visium slide
+We implemented a modular, HPC‐friendly workflow to go from raw Visium outputs to high‐level cell–cell interaction maps:
 
-### Results
+**Visium data import & preprocessing**  
+   - `scanpy.read_visium()` → raw counts matrix + tissue image  
+   - Gene filtering (min 3 cells), total‐count normalization, log‐transformation  
+**Dimensionality reduction & clustering**  
+   - PCA (50 components) → kNN graph → Leiden clustering  
+**Cell‐type annotation**  
+   - Map Leiden clusters → biological cell types (SMC, Endothelial, Fibroblast, Adipocyte, Macrophage) via curated dictionary  
+**Spatial visualization**  
+   - Overlay annotated spots on the low‑res H&E image with `matplotlib`  
+**CellPhoneDB export & analysis**  
+   - Generate `meta.txt` (cell ↔ cell_type) and `counts.txt` (gene × cell)  
+   - Run CellPhoneDB statistical permutation analysis  
+**Interaction heatmap**  
+   - Render “sum of significant ligand–receptor interactions” via ktplotspy  
 
-### Figure 6: Cell Type Spatial Overlay
-![Cell Type Spatial Overlay](ST_CCC/Output/sample1a1_celltype_overlay_on_image.png)
-*Cell type annotation overlaid on H&E-stained tissue section. Each spot is colored by the assigned cell type after Leiden clustering. The spatial layout preserves tissue architecture and reveals distinct cell-type localization.*
+---
 
-### Figure 7: Cell-Cell Communication Heatmap
-![Cell-Cell Communication Heatmap](ST_CCC/Output/cellphonedb_heatmap.png)
-*Heatmap showing the sum of significant ligand–receptor interactions between annotated cell types as inferred by CellPhoneDB. Color intensity reflects interaction strength, with diagonal values representing intra-cell-type signaling.*
+### 5.5. Key Results & Figures
+
+#### Spatial Cell‐Type Overlay  
+![Cell Type Overlay on H&E](03_cell_cell_communication/Output/sample1a1_celltype_overlay_on_image.png)  
+> **Figure A:** Annotated Visium spots (SMC, Endothelial, Fibroblast, Adipocyte, Macrophage) preserved spatial architecture and revealed discrete tissue niches.
+
+#### Cell–Cell Communication Heatmap  
+![Sum of significant interactions](03_cell_cell_communication/Output/cellphonedb_heatmap.png)  
+> **Figure B:** Heatmap of significant ligand–receptor interactions (CellPhoneDB); color intensity scales with interaction frequency, highlighting both intra‐ and inter‐cell‐type signaling.
+
+---
+
+### 5.6. Professional Insights & Next Steps
+
+- **Reproducibility & Scalability:**  
+  - All steps containerizable and runnable on HPC clusters; scripts parameterized for batch processing.  
+- **Biological highlights:**  
+  - Strong intra‐SMC and intra‐Macrophage signaling suggests autocrine loops.  
+  - Elevated cross‑talk between Adipocytes and Macrophages aligns with known paracrine regulation in adipose tissue.  
+- **Future directions:**  
+  1. **Multi‑sample integration** – extend pipeline to additional Visium slides for cohort‐level inference.  
+  2. **Targeted ligand–receptor screening** – focus on pathways of interest (e.g., growth factors, chemokines).  
+  3. **Spatially informed DE** – combine pseudotime/spatial coordinates to identify microenvironment‐driven transcriptional programs.
+
+> **Pipeline scripts:**  
+> - `03_cell_cell_communication/Process.py` – Visium import, clustering, annotation, export  
+> - `03_cell_cell_communication/Q3.py` – CellPhoneDB invocation & heatmap generation
+
+## 6. Overall Conclusion
+
+This test run demonstrates advanced, end‑to‑end bioinformatics expertise across multiple modalities:
+
+1. **Bulk RNA‑seq**  
+   - Performed quality checks: > 95% mapping rate, no trimming required  
+   - Executed alignment (HISAT2), quantification (featureCounts), DE analysis (DESeq2/edgeR), and GO BP enrichment  
+2. **Single‑Cell Trajectory (Slingshot)**  
+   - Conducted QC: > 88% alignment of 191 accessions, skipping trimming  
+   - Leveraged scater/scran for log‑normalization, PCA/UMAP for dimensionality reduction, Leiden for clustering, and Slingshot for trajectory inference  
+3. **Spatial Transcriptomics & Cell‑Cell Communication**  
+   - Imported 10x Visium data in Scanpy, applied filtering, normalization, PCA, neighbor graph, and Leiden clustering  
+   - Mapped clusters to cell types and overlaid on H&E image (`03_cell_cell_communication/Output/sample1a1_celltype_overlay_on_image.png`)  
+   - Exported CellPhoneDB inputs (`meta.txt`, `counts.txt`), ran statistical analysis, and generated interaction heatmap (`03_cell_cell_communication/Output/cellphonedb_heatmap.png`)  
+
+**Programming & Tools Proficiency**  
+- **Shell & HPC:** SRA Toolkit, HISAT2, SAMtools, Subread, FastQC, MultiQC  
+- **R:** DESeq2, edgeR, clusterProfiler, scater, scran, slingshot, ggplot2, pheatmap  
+- **Python:** Scanpy, CellPhoneDB, ktplotspy, pandas, numpy, matplotlib  
+
+Collectively, these modular pipelines—organized under  
+- `01_Bulk_RNASeq/`  
+- `02_trajectory_analysis/`  
+- `03_cell_cell_communication/`  
+
+—highlight my ability to design, implement, and scale reproducible bioinformatics workflows on HPC, delivering robust quality control, comprehensive analyses, and publication‑ready visualizations.
