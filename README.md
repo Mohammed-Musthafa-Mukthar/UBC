@@ -146,16 +146,16 @@ Rscript DE_GO/Q1.R
 
 #### 3.1 PCA Plot  
 ![PCA plot](01_Bulk_RNASeq/PCA_plot.png)  
-> **Caption:** Principal component analysis of variance‑stabilized counts.  
+> Principal component analysis of variance‑stabilized counts.  
 > PC1 (96% variance) separates group1 vs group2; PC2 accounts for ~3%.
 
 #### 3.2 Sample‑to‑Sample Distance Heatmap  
 ![Distance heatmap](01_Bulk_RNASeq/sample_distance_heatmap.png)  
-> **Caption:** Euclidean distances between samples (VST counts), clustered by similarity. group1 and group2 each form tight clusters.
+> Euclidean distances between samples (VST counts), clustered by similarity. group1 and group2 each form tight clusters.
 
 #### 3.3 Volcano Plot  
 ![Volcano plot](01_Bulk_RNASeq/volcano_plot.png)  
-> **Caption:** Log₂ fold change vs –log₁₀ adjusted p‑value. No points exceed the significance/FDR and fold‑change thresholds.
+> Log₂ fold change vs –log₁₀ adjusted p‑value. No points exceed the significance/FDR and fold‑change thresholds.
 
 ---
 
