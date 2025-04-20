@@ -125,7 +125,7 @@ featureCounts -p -T 8 -t exon -g gene_id -a annotation.gtf -o counts.txt *.sorte
 Rscript DE_GO/Q1.R
 ```
 
-### R code Analysis Overview  
+### 1. R code Analysis Overview  
 1. Load raw counts (`count_data.csv`) and sample metadata (`col_data.csv`).  
 2. Build a `DESeqDataSet` with `design = ~ group` (levels: group1, group2).  
 3. Run DESeq2 to estimate size factors, dispersions, and test for differential expression.  
@@ -133,15 +133,38 @@ Rscript DE_GO/Q1.R
    - Adjusted p‑value < 0.05  
    - |log₂ fold change| > 1  
 
-### Results
+---
 
-### Figure 1: Bar Plot
-![Bar plot of GO enrichment](DE_GO/Output/go_barplot.png)
-*Bar plot of top enriched GO biological processes. Bar length indicates the number of genes associated with each term. Color gradient reflects the adjusted p-value (`p.adjust`).*
+### 2. Key Results  
+- **Total genes tested:** 56,885  
+- **DEGs (padj < 0.05 & |log₂FC| > 1):** 0  _→_ no genes passed the thresholds.  
+- **GO BP enrichment:** skipped (no DEGs to analyze)  
 
-### Figure 2: Dot Plot
-![Dot plot of GO enrichment](DE_GO/Output/go_dotplot.png)
-*Dot plot showing enriched GO terms. Dot size represents gene count, and the x-axis reflects the GeneRatio. Color scale represents adjusted p-values (`p.adjust`).*
+---
+
+### 3. QC & Diagnostic Plots  
+
+#### 3.1 PCA Plot  
+![PCA plot](01_Bulk_RNASeq/PCA_plot.png)  
+> **Caption:** Principal component analysis of variance‑stabilized counts.  
+> PC1 (96% variance) separates group1 vs group2; PC2 accounts for ~3%.
+
+#### 3.2 Sample‑to‑Sample Distance Heatmap  
+![Distance heatmap](01_Bulk_RNASeq/sample_distance_heatmap.png)  
+> **Caption:** Euclidean distances between samples (VST counts), clustered by similarity. group1 and group2 each form tight clusters.
+
+#### 3.3 Volcano Plot  
+![Volcano plot](01_Bulk_RNASeq/volcano_plot.png)  
+> **Caption:** Log₂ fold change vs –log₁₀ adjusted p‑value. No points exceed the significance/FDR and fold‑change thresholds.
+
+---
+
+### 4. Conclusions  
+- At **padj < 0.05** and **|log₂FC| > 1**, **no genes** are differentially expressed between group1 and group2 under these conditions.  
+- Accordingly, **GO Biological Process enrichment** was not performed.  
+
+> **Note:** The complete R script driving this analysis (data import, DESeq2 workflow, filtering, plotting, and GO enrichment steps) is included in  
+> `01_Bulk_RNASeq/Bulk_RNA-Seq(r_code).R`.  
 
 ## Q2 Trajectory Analysis
 
