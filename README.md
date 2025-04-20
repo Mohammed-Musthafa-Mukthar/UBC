@@ -251,15 +251,15 @@ Rscript TA/Q2.R
 ### Results
 
 ### Figure 3: Pseudotime Distribution
-![Pseudotime Distribution](TA/Output/pseudotime_histogram.png)
+![Pseudotime Distribution](02_trajectory_analysis/Output_Plots/pseudotime_histogram.png)
 *Histogram of Slingshot pseudotime values for all cells. The x‑axis shows pseudotime (0 = earliest, ~140 = latest), and the y‑axis shows cell counts per bin, illustrating that cells are evenly distributed along the inferred trajectory.*
 
 ### Figure 4: Slingshot Trajectory on PCA
-![Slingshot Trajectory on PCA](TA/Output/trajectory_pca.png)
+![Slingshot Trajectory on PCA](02_trajectory_analysis/Output_Plots/trajectory_pca.png)
 *Scatterplot of PC1 vs. PC2 for each cell, colored by cluster assignment (Set3 palette), with the Slingshot‐inferred developmental trajectory overlaid as a black curve. The curve traces the progression from progenitor to mature cell states in principal‐component space.*
 
 ### Figure 5: UMAP Colored by Pseudotime
-![UMAP Colored by Pseudotime](TA/Output/trajectory_umap_pseudotime.png)
+![UMAP Colored by Pseudotime](02_trajectory_analysis/Output_Plots/trajectory_umap_pseudotime.png)
 *UMAP embedding of all cells, colored on a continuous blue–yellow scale by their Slingshot pseudotime values. Early pseudotime cells (blue) transition smoothly through intermediate (green) to late pseudotime cells (yellow), confirming the continuity of the developmental trajectory.*
 
 ## Q3 Spatial Transcriptomics & Cell-Cell Communication
