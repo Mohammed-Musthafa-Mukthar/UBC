@@ -1,4 +1,4 @@
-# === Set custom library path ===
+# Set custom library path 
 .libPaths("/gpfs/fs7/aafc/phenocart/PhenomicsProjects/UFPSGPSCProject/4_Assets/R/custom_lib")
 
 # trajectory_analysis_slingshot.R
@@ -78,5 +78,3 @@ hist(
   col    = "lightblue"
 )
 dev.off()
-
-
