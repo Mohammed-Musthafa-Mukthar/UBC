@@ -15,7 +15,7 @@ This repository implements end‑to‑end bioinformatics pipelines on an HPC env
 
 **Tools & Languages**  
 - **CLI**: SRA Toolkit, HISAT2, SAMtools, Subread/featureCounts, FastQC, MultiQC  
-- **R**: DESeq2, edgeR, clusterProfiler, scater, scran, slingshot, ggplot2, pheatmap  
+- **R**: DESeq2, clusterProfiler, scater, scran, slingshot, ggplot2, pheatmap  
 - **Python**: Scanpy, CellPhoneDB, ktplotspy, matplotlib, pandas, numpy  
 
 ---
@@ -51,7 +51,7 @@ export PATH=$PATH:$(pwd)/bin
 
 ## 3. Q1 Bulk RNA‑seq Analysis
 
-A modular and reproducible pipeline for RNA-seq data analysis, designed to be deployed on high-performance computing (HPC) environments with customizable R installations.
+A modular and reproducible pipeline for RNA-seq data analysis, designed to be deployed on high-performance computing environments with customizable R installations.
 
 ### 3.1. Overview
 
@@ -110,7 +110,7 @@ hisat2 -x mm39_index/mm39 -1 SAMN18442665_1.fastq -2 SAMN18442665_2.fastq -S SAM
 hisat2 -x mm39_index/mm39 -1 SAMN18442666_1.fastq -2 SAMN18442666_2.fastq -S SAMN18442666.sam
 hisat2 -x mm39_index/mm39 -1 SAMN18442664_1.fastq -2 SAMN18442664_2.fastq -S SAMN18442664.sam
 ```
-- **Alignment rate:** > 95% → no trimming performed  
+- **Alignment rate:** > 95% → no trimming needed  
 
 #### 3.2.7. Convert SAM to BAM
 
@@ -140,7 +140,7 @@ featureCounts -p -T 8 -t exon -g gene_id -a annotation.gtf -o counts.txt *.sorte
 #### 3.2.10. Run the Script
 
 ```bash
-Rscript DE_GO/Q1.R
+Rscript 01_Bulk_RNASeq/Bulk_RNA-Seq(r_code).R
 ```
 
 ### 3.3. R code Analysis Overview  
@@ -178,8 +178,8 @@ Rscript DE_GO/Q1.R
 ---
 
 ### 3.6. Conclusions  
-- At **padj < 0.05** and **|log₂FC| > 1**, **no genes** are differentially expressed between group1 and group2 under these conditions.  
-- Accordingly, **GO Biological Process enrichment** was not performed.  
+- At padj < 0.05 and |log₂FC| > 1, no genes are differentially expressed between group1 and group2 under these conditions.  
+- Accordingly, GO Biological Process enrichment was not performed but corresponding code available.  
 
 > **Note:** The complete R script driving this analysis (data import, DESeq2 workflow, filtering, plotting, and GO enrichment steps) is included in  
 > `01_Bulk_RNASeq/Bulk_RNA-Seq(r_code).R`.  
@@ -273,7 +273,7 @@ hisat2-build \
   Mus_musculus.GRCm39.dna.primary_assembly.fa \
   ../hisat2_index/mouse_index
 ```
-- **Alignment rate:** > 85% → no trimming performed
+- **Alignment rate:** > 85% → no trimming needed
 
 #### 4.1.8. Generate count matrix
 
@@ -288,7 +288,7 @@ featureCounts -T 8 \
 #### 4.1.9. Run the Script
 
 ```bash
-Rscript TA/Q2.R
+Rscript 02_trajectory_analysis/Trajectory_analysis_code.R
 ```
 
 ### 4.2. R code Analysis Overview
@@ -315,7 +315,7 @@ Started from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and pe
 
 ### 4.3. Key Metrics
 
-- **Cells analyzed:** 191  
+- **Cells analyzed:** 191 (quality check passed) 
 - **Clusters inferred:** 3  
 - **Pseudotime range:** 0 (earliest) → ~145 (latest)  
 
@@ -325,23 +325,23 @@ Started from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and pe
 
 #### 4.4.1. Pseudotime Distribution  
 ![Pseudotime histogram](02_trajectory_analysis/Output_Plots/pseudotime_histogram.png)  
-> **Caption:** Histogram of Slingshot pseudotime values for all cells. The x‑axis shows pseudotime (0 = earliest, ~140 = latest), and the y‑axis shows cell counts per bin, illustrating that cells are evenly distributed along the inferred trajectory.
+> Histogram of Slingshot pseudotime values for all cells. The x‑axis shows pseudotime (0 = earliest, ~140 = latest), and the y‑axis shows cell counts per bin, illustrating that cells are evenly distributed along the inferred trajectory.
 
 #### 4.4.2. Slingshot Trajectory on PCA  
 ![Trajectory on PCA](02_trajectory_analysis/Output_Plots/trajectory_pca.png)  
-> **Caption:** Scatterplot of PC1 vs PC2, colored by cluster assignment (Set3 palette), with the Slingshot‑inferred developmental trajectory overlaid as a black curve tracing progression from progenitor to mature states.
+> Scatterplot of PC1 vs PC2, colored by cluster assignment (Set3 palette), with the Slingshot‑inferred developmental trajectory overlaid as a black curve tracing progression from progenitor to mature states.
 
 #### 4.4.3. UMAP Colored by Pseudotime  
 ![UMAP by pseudotime](02_trajectory_analysis/Output_Plots/trajectory_umap_pseudotime.png)  
-> **Caption:** UMAP embedding of all cells, colored on a continuous blue–yellow scale by their Slingshot pseudotime values. Early cells (blue) transition smoothly through intermediate (green) to late pseudotime (yellow), confirming continuity of the trajectory.
+> UMAP embedding of all cells, colored on a continuous blue–yellow scale by their Slingshot pseudotime values. Early cells (blue) transition smoothly through intermediate (green) to late pseudotime (yellow), confirming continuity of the trajectory.
 
 ---
 
 ### 4.5. Conclusion
 
-- **Even pseudotime spread** across ~0–145 units suggests robust lineage coverage.  
-- **Three clusters** correspond to distinct transcriptional states along this trajectory.  
-- **PCA vs UMAP** both separate early vs late cells, validating the inferred path.  
+- Even pseudotime spread across ~0–145 units suggests robust lineage coverage.  
+- Three clusters correspond to distinct transcriptional states along this trajectory.  
+- PCA vs. UMAP both separate early vs late cells, validating the inferred path.  
 
 > **Full code:** See `02_trajectory_analysis/Trajectory_analysis_code.R` for the complete Slingshot workflow including package setup, data loading, normalization, DR, clustering, trajectory inference, pseudotime extraction, and plotting.  
 
@@ -411,8 +411,8 @@ source venv/bin/activate
 #### 5.3.4. Run the Script
 
 ```bash
-python ST_CCC/Process.py
-python ST_CCC/Q3.py
+python 03_cell_cell_communication/Process.py
+python 03_cell_cell_communication/Q3.py
 ```
 ### 5.4. Python Code Analysis Overview
 
@@ -429,7 +429,7 @@ python ST_CCC/Q3.py
    - Generate `meta.txt` (cell ↔ cell_type) and `counts.txt` (gene × cell)  
    - Run CellPhoneDB statistical permutation analysis  
 **Interaction heatmap**  
-   - Render “sum of significant ligand–receptor interactions” via ktplotspy  
+   - Render sum of significant ligand–receptor interactions via ktplotspy  
 
 ---
 
@@ -467,7 +467,7 @@ This test run demonstrates advanced, end‑to‑end bioinformatics expertise acr
    - Performed quality checks: > 95% mapping rate, no trimming required  
    - Executed alignment (HISAT2), quantification (featureCounts), DE analysis (DESeq2/edgeR), and GO BP enrichment  
 2. **Single‑Cell Trajectory (Slingshot)**  
-   - Conducted QC: > 88% alignment of 191 accessions (passed quality check), skipping trimming  
+   - Conducted QC: > 88% alignment of 191 accessions (passed quality check), no trimming required    
    - Leveraged scater/scran for log‑normalization, PCA/UMAP for dimensionality reduction, Leiden for clustering, and Slingshot for trajectory inference  
 3. **Spatial Transcriptomics & Cell‑Cell Communication**  
    - Imported 10x Visium data in Scanpy, applied filtering, normalization, PCA, neighbor graph, and Leiden clustering  
@@ -479,9 +479,9 @@ This test run demonstrates advanced, end‑to‑end bioinformatics expertise acr
 - **R:** DESeq2, clusterProfiler, scater, scran, slingshot, ggplot2, pheatmap  
 - **Python:** Scanpy, CellPhoneDB, ktplotspy, pandas, numpy, matplotlib  
 
-Collectively, these modular pipelines—organized under  
+Collectively, these modular pipelines organized under  
 - `01_Bulk_RNASeq/`  
 - `02_trajectory_analysis/`  
 - `03_cell_cell_communication/`  
 
-—highlight my ability to design, implement, and scale reproducible bioinformatics workflows on HPC, delivering robust quality control, comprehensive analyses, and publication‑ready visualizations.
+highlight my ability to design, implement, and scale reproducible bioinformatics workflows on HPC, delivering robust quality control, comprehensive analyses, and publication‑ready visualizations.
