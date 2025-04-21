@@ -11,7 +11,7 @@ This repository implements end‑to‑end bioinformatics pipelines on an HPC env
 
 1. **Bulk RNA‑seq**: alignment → quantification → differential expression → GO enrichment  
 2. **Trajectory analysis**: normalization → PCA/UMAP → clustering → Slingshot trajectory → pseudotime  
-3. **Cell Cell Communication**: Visium data import → clustering → cell‑type annotation → CellPhoneDB ligand–receptor analysis  
+3. **Cell-Cell Communication**: Visium data import → clustering → cell‑type annotation → CellPhoneDB ligand–receptor analysis  
 
 **Tools & Languages**  
 - **CLI**: SRA Toolkit, HISAT2, SAMtools, Subread/featureCounts, FastQC, MultiQC  
@@ -49,7 +49,7 @@ cd subread-2.1.0-Linux-x86_64
 export PATH=$PATH:$(pwd)/bin
 ```
 
-## 3. Q1 Deferential Expression & Gene Ontology
+## 3. Q1 Bulk RNA‑seq Analysis
 
 A modular and reproducible pipeline for RNA-seq data analysis, designed to be deployed on high-performance computing (HPC) environments with customizable R installations.
 
@@ -58,8 +58,7 @@ A modular and reproducible pipeline for RNA-seq data analysis, designed to be de
 The pipeline supports:
 - Alignment of RNA-seq reads to a reference genome
 - Gene-level quantification
-- Differential gene expression analysis using the edgeR package
-- Functional enrichment analysis using Gene Ontology (GO) with clusterProfiler
+- Differential gene expression analysis using the DESeq2 package
 
 ### 3.2. Step-by-step instructions to fetch data and perform Differential Expression & Gene Ontology
 
@@ -157,7 +156,7 @@ Rscript DE_GO/Q1.R
 ### 3.4. Key Results  
 - **Total genes tested:** 56,885  
 - **DEGs (padj < 0.05 & |log₂FC| > 1):** 0  _→_ no genes passed the thresholds.  
-- **GO BP enrichment:** skipped (no DEGs to analyze)  
+- **GO BP enrichment:** no DEGs to analyze; but corresponding code available `01_Bulk_RNASeq/Bulk_RNA-Seq(r_code).R`
 
 ---
 
@@ -294,7 +293,7 @@ Rscript TA/Q2.R
 
 ### 4.2. R code Analysis Overview
 
-Start from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and perform:
+Started from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and perform:
 
 1. **Normalization**  
    Create a `SingleCellExperiment` with raw counts, then compute log‑normalized counts via `scater::logNormCounts()`.
@@ -344,17 +343,18 @@ Start from a cleaned gene × cell count matrix (`cleaned_counts.csv`) and perf
 - **Three clusters** correspond to distinct transcriptional states along this trajectory.  
 - **PCA vs UMAP** both separate early vs late cells, validating the inferred path.  
 
-**Future direction:**    
-- Perform differential expression along pseudotime to identify dynamically regulated genes.
-
 > **Full code:** See `02_trajectory_analysis/Trajectory_analysis_code.R` for the complete Slingshot workflow including package setup, data loading, normalization, DR, clustering, trajectory inference, pseudotime extraction, and plotting.  
 
 
 ## 5. Q3 Spatial Transcriptomics & Cell-Cell Communication
 
-A streamlined and modular pipeline for analyzing spatial transcriptomics (ST) data with cluster-based cell type annotation and downstream ligand–receptor interaction analysis, suitable for deployment on HPC environments and reproducible research workflows.
+A streamlined and modular pipeline for analyzing spatial transcriptomics data with cluster-based cell type annotation and downstream ligand–receptor interaction analysis, suitable for deployment on HPC environments and reproducible research workflows.
 
 ### 5.1. Overview
+
+- **GEO series:** GSE283269 (10x Visium H&E‐stained sections)  
+- **Selected sample:** GSM8658911 (`sample1a1`) as a representative Visium slide
+- Implemented a modular, HPC‐friendly workflow to go from raw Visium outputs to high‐level cell–cell interaction maps:
 
 The pipeline supports:
 
@@ -373,8 +373,6 @@ The pipeline supports:
 ```bash
 pip install scanpy pandas matplotlib numpy pillow cellphonedb
 ```
-
-There were some issues installing ktplotspy, clone repo and install
 
 ```bash
 git clone git://github.com/zktuong/ktplotspy.git
@@ -417,10 +415,6 @@ python ST_CCC/Process.py
 python ST_CCC/Q3.py
 ```
 ### 5.4. Python Code Analysis Overview
-**Data Source**  
-- **GEO series:** GSE283269 (10x Visium H&E‐stained sections)  
-- **Selected sample:** GSM8658911 (`sample1a1`) as a representative Visium slide
-We implemented a modular, HPC‐friendly workflow to go from raw Visium outputs to high‐level cell–cell interaction maps:
 
 **Visium data import & preprocessing**  
    - `scanpy.read_visium()` → raw counts matrix + tissue image  
@@ -443,25 +437,23 @@ We implemented a modular, HPC‐friendly workflow to go from raw Visium outputs 
 
 #### Spatial Cell‐Type Overlay  
 ![Cell Type Overlay on H&E](03_cell_cell_communication/Output/sample1a1_celltype_overlay_on_image.png)  
-> **Figure A:** Annotated Visium spots (SMC, Endothelial, Fibroblast, Adipocyte, Macrophage) preserved spatial architecture and revealed discrete tissue niches.
+> **Figure 5.5.1. :** Annotated Visium spots (SMC, Endothelial, Fibroblast, Adipocyte, Macrophage) preserved spatial architecture and revealed discrete tissue niches.
 
 #### Cell–Cell Communication Heatmap  
 ![Sum of significant interactions](03_cell_cell_communication/Output/cellphonedb_heatmap.png)  
-> **Figure B:** Heatmap of significant ligand–receptor interactions (CellPhoneDB); color intensity scales with interaction frequency, highlighting both intra‐ and inter‐cell‐type signaling.
+> **Figure 5.5.2. :** Heatmap of significant ligand–receptor interactions (CellPhoneDB); color intensity scales with interaction frequency, highlighting both intra‐ and inter‐cell‐type signaling.
 
 ---
 
-### 5.6. Professional Insights & Next Steps
+### 5.6. Conclusion
 
 - **Reproducibility & Scalability:**  
   - All steps containerizable and runnable on HPC clusters; scripts parameterized for batch processing.  
-- **Biological highlights:**  
-  - Strong intra‐SMC and intra‐Macrophage signaling suggests autocrine loops.  
-  - Elevated cross‑talk between Adipocytes and Macrophages aligns with known paracrine regulation in adipose tissue.  
+- **Observations:**  
+  - Strong intra‐SMC and intra‐Macrophage signaling.  
+  - Elevated cross‑talk between Adipocytes and Macrophages.  
 - **Future directions:**  
-  1. **Multi‑sample integration** – extend pipeline to additional Visium slides for cohort‐level inference.  
-  2. **Targeted ligand–receptor screening** – focus on pathways of interest (e.g., growth factors, chemokines).  
-  3. **Spatially informed DE** – combine pseudotime/spatial coordinates to identify microenvironment‐driven transcriptional programs.
+  **Multi‑sample integration** – extend pipeline to additional Visium slides for cohort‐level inference.  
 
 > **Pipeline scripts:**  
 > - `03_cell_cell_communication/Process.py` – Visium import, clustering, annotation, export  
@@ -475,7 +467,7 @@ This test run demonstrates advanced, end‑to‑end bioinformatics expertise acr
    - Performed quality checks: > 95% mapping rate, no trimming required  
    - Executed alignment (HISAT2), quantification (featureCounts), DE analysis (DESeq2/edgeR), and GO BP enrichment  
 2. **Single‑Cell Trajectory (Slingshot)**  
-   - Conducted QC: > 88% alignment of 191 accessions, skipping trimming  
+   - Conducted QC: > 88% alignment of 191 accessions (passed quality check), skipping trimming  
    - Leveraged scater/scran for log‑normalization, PCA/UMAP for dimensionality reduction, Leiden for clustering, and Slingshot for trajectory inference  
 3. **Spatial Transcriptomics & Cell‑Cell Communication**  
    - Imported 10x Visium data in Scanpy, applied filtering, normalization, PCA, neighbor graph, and Leiden clustering  
@@ -484,7 +476,7 @@ This test run demonstrates advanced, end‑to‑end bioinformatics expertise acr
 
 **Programming & Tools Proficiency**  
 - **Shell & HPC:** SRA Toolkit, HISAT2, SAMtools, Subread, FastQC, MultiQC  
-- **R:** DESeq2, edgeR, clusterProfiler, scater, scran, slingshot, ggplot2, pheatmap  
+- **R:** DESeq2, clusterProfiler, scater, scran, slingshot, ggplot2, pheatmap  
 - **Python:** Scanpy, CellPhoneDB, ktplotspy, pandas, numpy, matplotlib  
 
 Collectively, these modular pipelines—organized under  
