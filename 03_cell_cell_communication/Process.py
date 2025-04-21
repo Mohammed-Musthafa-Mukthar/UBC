@@ -5,13 +5,13 @@ import json
 from PIL import Image
 import numpy as np
 
-# === Load Visium data ===
+# Load Visium data 
 adata = sc.read_visium(
     path="/gpfs/fs7/aafc/phenocart/PhenomicsProjects/RNASeq/SpatialTrans/Data/sample1a1",
     count_file="filtered_feature_bc_matrix.h5"
 )
 
-# === Preprocessing and Leiden clustering ===
+# Preprocessing and Leiden clustering
 sc.pp.filter_genes(adata, min_cells=3)
 sc.pp.normalize_total(adata)
 sc.pp.log1p(adata)
@@ -19,7 +19,7 @@ sc.pp.pca(adata)
 sc.pp.neighbors(adata)
 sc.tl.leiden(adata)
 
-# === Map clusters to biological cell types ===
+# Map clusters to biological cell types
 cluster_to_type = {
     '0': 'SMC',
     '1': 'Endothelial',
@@ -31,7 +31,7 @@ cluster_to_type = {
 }
 adata.obs['cell_type'] = adata.obs['leiden'].map(cluster_to_type)
 
-# === Load scalefactors and image ===
+# Load scalefactors and image
 with open("/gpfs/fs7/aafc/phenocart/PhenomicsProjects/RNASeq/SpatialTrans/Data/sample1a1/spatial/scalefactors_json.json") as f:
     scalefactors = json.load(f)
 
@@ -39,7 +39,7 @@ lowres_scale = scalefactors["tissue_lowres_scalef"]
 img_path = "/gpfs/fs7/aafc/phenocart/PhenomicsProjects/RNASeq/SpatialTrans/Data/sample1a1/spatial/tissue_lowres_image.png"
 img = Image.open(img_path)
 
-# === Scale spatial coordinates ===
+# Scale spatial coordinates
 coords = pd.DataFrame(adata.obsm["spatial"], columns=["x", "y"], index=adata.obs.index)
 coords["x"] = coords["x"] * lowres_scale
 coords["y"] = coords["y"] * lowres_scale
