@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 from cellphonedb.src.core.methods import cpdb_statistical_analysis_method
 from ktplotspy import plot_cpdb_heatmap
 
-# === Step 1: Load Visium Data ===
+#1: Load Visium Data 
 adata = sc.read_visium(
     path="/gpfs/fs7/aafc/phenocart/PhenomicsProjects/RNASeq/SpatialTrans/Data/sample1a1",
     count_file="filtered_feature_bc_matrix.h5"
 )
 
-# === Step 2: Preprocessing and Clustering ===
+# 2: Preprocessing and Clustering
 sc.pp.filter_genes(adata, min_cells=3)
 sc.pp.normalize_total(adata)
 sc.pp.log1p(adata)
@@ -21,7 +21,7 @@ sc.pp.pca(adata)
 sc.pp.neighbors(adata)
 sc.tl.leiden(adata)
 
-# === Step 3: Annotate Cell Types ===
+# 3: Annotate Cell Types
 cluster_to_type = {
     '0': 'SMC',
     '1': 'Endothelial',
@@ -33,7 +33,7 @@ cluster_to_type = {
 }
 adata.obs['cell_type'] = adata.obs['leiden'].map(cluster_to_type)
 
-# === Step 4: Export meta.txt ===
+# 4: Export meta.txt
 meta = pd.DataFrame({
     'Cell': adata.obs_names,
     'cell_type': adata.obs['cell_type']
@@ -41,7 +41,7 @@ meta = pd.DataFrame({
 meta_file_path = "meta.txt"
 meta.to_csv(meta_file_path, sep='\t', index=False)
 
-# === Step 5: Export counts.txt ===
+# 5: Export counts.txt
 expr_array = adata.X.toarray() if not isinstance(adata.X, np.ndarray) else adata.X
 expr = pd.DataFrame(
     expr_array.T,  # Transpose to match CellPhoneDB format
@@ -54,7 +54,7 @@ expr.to_csv(counts_file_path, sep='\t', index=False)
 
 print("meta.txt and counts.txt generated successfully.")
 
-# === Step 6: Run CellPhoneDB ===
+# 6: Run CellPhoneDB
 cpdb_file_path = "cellphonedb.zip"  # Provide the correct path if needed
 output_path = "out"
 os.makedirs(output_path, exist_ok=True)
@@ -74,7 +74,7 @@ cpdb_statistical_analysis_method.call(
 )
 print("CellPhoneDB analysis complete.")
 
-# === Step 7: Visualize Significant Interactions ===
+# 7: Visualize Significant Interactions
 print("Creating heatmap...")
 
 pvalues_file = sorted(glob.glob(os.path.join(output_path, "statistical_analysis_pvalues_*.txt")))[-1]
