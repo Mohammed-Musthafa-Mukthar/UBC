@@ -1,4 +1,4 @@
-# Test Run: RNA‑seq, Single‑Cell Trajectory & Cell-Cell Communication Analysis for Dr. Wang’s Lab  
+# Test Run: RNA‑seq, Single‑Cell Trajectory & Cell-Cell Communication Analysis 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 _A modular, HPC‑compatible suite of workflows demonstrating bulk RNA‑seq, single‑cell Slingshot trajectory inference, and Visium‑based spatial transcriptomics with CellPhoneDB._
